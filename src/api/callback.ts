@@ -1,9 +1,12 @@
 
-import * as Line from '@line/bot-sdk';
+import * as line from '@line/bot-sdk';
 import { messageSecret } from '@config/line';
-const client = new Line.Client({ channelAccessToken: messageSecret.access_token });
+const client = new line.Client({ channelAccessToken: messageSecret.access_token });
+import * as admin from 'firebase-admin';
+import { getSubItemsByAccount, updateUserListFromSubItem } from '@api/firebase';
+import { textMessageTemplate } from '@api/line_templates';
 
-export const handleEvent = (event:Line.WebhookEvent) => {
+export const handleEvent = (event: line.WebhookEvent) => {
   switch (event.type) {
     case 'message':
       const message = event.message;
@@ -52,19 +55,31 @@ export const handleEvent = (event:Line.WebhookEvent) => {
   }
 };
 
-const handleText = (message: Line.TextMessage, replyToken: string, source: Line.EventSource) => {
+const handleText = async (message: line.TextMessage,
+                          replyToken: string, source: line.EventSource) => {
+  let replyMessage: line.TextMessage;
   if (message.text.includes('subscribe ig')) {
-    client.replyMessage(replyToken, message)
-    .then((res:any) => {
-      console.log(res);
-      // getSubList().then((querySnapshot:any) => {
-      //   querySnapshot.forEach((doc:any) => {
-      //     console.log(`${doc.id} => ${doc.data()}`);
-      //   });
-      // });
-    })
-    .catch((err:any) => {
-      // error handling
+    const account = message.text.split(' ')[2];
+    if (!account) { return; }
+    let replyText = '';
+    await getSubItemsByAccount(account).then((querySnapshot: admin.firestore.QuerySnapshot) => {
+      querySnapshot.forEach((item) => {
+        const userList = item.data().users;
+        if (userList.includes(source.userId)) {
+          replyText = '你已經訂閱過囉!';
+        } else {
+          updateUserListFromSubItem(item.id, userList);
+          replyText = '成功訂閱!';
+        }
+      });
+      replyMessage = textMessageTemplate(replyText);
+    }).catch((error) => {
+      replyMessage = textMessageTemplate(replyText);
     });
   }
+
+  client.replyMessage(replyToken, replyMessage)
+  .catch(() => {
+    console.log('沒有回傳值');
+  });
 };

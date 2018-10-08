@@ -9,7 +9,12 @@ admin.initializeApp({
 
 const db = admin.firestore();
 db.settings({ timestampsInSnapshots: true });
+const subItemsCollection = db.collection('sub_items');
 
-export const getSubList = (() => {
-  return db.collection('sub_items').get();
+export const getSubItemsByAccount = ((account: string) => {
+  return subItemsCollection.where('account', '==', account).get();
+});
+
+export const updateUserListFromSubItem = ((itemId: string, userList: string[]) => {
+  return subItemsCollection.doc(itemId).update({ users: userList });
 });

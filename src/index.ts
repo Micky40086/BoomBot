@@ -11,12 +11,12 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.json());
 // Show requset info
-app.use((req:Request, res:Response, next:NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(req.method, req.url);
   next();
 });
 
-app.get('/', (req:Request, res:Response) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Hello World');
 });
 
