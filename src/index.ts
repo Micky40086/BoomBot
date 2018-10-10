@@ -3,6 +3,7 @@ import path from 'path';
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import callbackRouter from './routes/callbackRouter';
+import instagramRouter from './routes/instagramRouter';
 
 const app = express();
 // View Settings
@@ -21,5 +22,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/callback', callbackRouter);
+app.use('/instagram', instagramRouter);
 
 app.listen(8080);

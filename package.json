@@ -14,6 +14,7 @@
     "@line/bot-sdk": "^6.3.0",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
+    "cheerio": "^1.0.0-rc.2",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "firebase-admin": "^6.0.0",
@@ -21,6 +22,7 @@
     "qs": "^6.5.2"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.9",
     "@types/express": "^4.16.0",
     "@types/jsonwebtoken": "^7.2.8",
     "@types/node": "^10.9.4",

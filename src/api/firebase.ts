@@ -11,6 +11,10 @@ const db = admin.firestore();
 db.settings({ timestampsInSnapshots: true });
 const subItemsCollection = db.collection('sub_items');
 
+export const getSubItems = (() => {
+  return subItemsCollection.get();
+});
+
 export const getSubItemsByAccount = ((account: string) => {
   return subItemsCollection.where('account', '==', account).get();
 });
