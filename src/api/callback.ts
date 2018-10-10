@@ -61,25 +61,31 @@ const handleText = async (message: line.TextMessage,
   if (message.text.includes('subscribe ig')) {
     const account = message.text.split(' ')[2];
     if (!account) { return; }
-    let replyText = '';
-    await getSubItemsByAccount(account).then((querySnapshot: admin.firestore.QuerySnapshot) => {
-      querySnapshot.forEach((item) => {
-        const userList = item.data().users;
-        if (userList.includes(source.userId)) {
-          replyText = '你已經訂閱過囉!';
-        } else {
-          updateUserListFromSubItem(item.id, userList);
-          replyText = '成功訂閱!';
-        }
-      });
-      replyMessage = textMessageTemplate(replyText);
-    }).catch((error) => {
-      replyMessage = textMessageTemplate(replyText);
-    });
+    replyMessage = await subscribeInstagram(account, source.userId);
   }
 
   client.replyMessage(replyToken, replyMessage)
   .catch(() => {
     console.log('沒有回傳值');
+  });
+};
+
+const subscribeInstagram = (account: string, userId: string): Promise<line.TextMessage> => {
+  let replyText = '';
+  return getSubItemsByAccount(account)
+  .then((querySnapshot: admin.firestore.QuerySnapshot) => {
+    querySnapshot.forEach(async (item) => {
+      const userList = item.data().users;
+      if (userList.includes(userId)) {
+        replyText = '你已經訂閱過囉!';
+      } else {
+        await updateUserListFromSubItem(item.id, userList);
+        replyText = '成功訂閱!';
+      }
+    });
+    return textMessageTemplate(replyText);
+  }).catch((error) => {
+    console.log(error);
+    return textMessageTemplate('請稍後再試!');
   });
 };
