@@ -1,10 +1,9 @@
 
 import * as line from '@line/bot-sdk';
-import { messageSecret } from '@config/line';
-const client = new line.Client({ channelAccessToken: messageSecret.access_token });
+import { replyApi } from '@api/line/reply';
 import * as admin from 'firebase-admin';
 import { getSubItemsByAccount, updateUserListFromSubItem } from '@api/firebase';
-import { textMessageTemplate } from '@api/line_templates';
+import { textMessageTemplate } from '@api/line/templates';
 
 export const handleEvent = (event: line.WebhookEvent) => {
   switch (event.type) {
@@ -64,10 +63,7 @@ const handleText = async (message: line.TextMessage,
     replyMessage = await subscribeInstagram(account, source.userId);
   }
 
-  client.replyMessage(replyToken, replyMessage)
-  .catch(() => {
-    console.log('沒有回傳值');
-  });
+  replyApi(replyToken, replyMessage);
 };
 
 const subscribeInstagram = (account: string, userId: string): Promise<line.TextMessage> => {
