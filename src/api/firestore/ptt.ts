@@ -7,8 +7,15 @@ export const getSubItems = (() => {
   return subItemsCollection.get();
 });
 
-export const getSubItemsByAccount = ((account: string) => {
-  return subItemsCollection.where('account', '==', account).get();
+export const getSubItemsByBoard = ((board: string) => {
+  return subItemsCollection.where('board', '==', board).get();
+});
+
+export const createSubItem = ((boardName: string, userId: string) => {
+  return subItemsCollection.add({
+    board: boardName,
+    users: [userId],
+  });
 });
 
 export const updateUserListFromSubItem = ((itemId: string, userList: string[]) => {

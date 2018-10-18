@@ -3,7 +3,9 @@ import * as line from '@line/bot-sdk';
 import { replyApi } from '@api/line/reply';
 import * as admin from 'firebase-admin';
 import * as instagramFirestore from '@api/firestore/instagram';
+import * as pttFirestore from '@api/firestore/ptt';
 import { textMessageTemplate } from '@api/line/templates';
+import axios from 'axios';
 
 export const handleEvent = (event: line.WebhookEvent) => {
   switch (event.type) {
@@ -59,8 +61,12 @@ const handleText = async (message: line.TextMessage,
   let replyMessage: line.TextMessage;
   if (message.text.includes('subscribe ig')) {
     const account = message.text.split(' ')[2];
-    if (!account) { return; }
-    replyMessage = await subscribeInstagram(account, source.userId);
+    if (!account || await !checkPageExist(`https://www.instagram.com/${account}/`)) { return; }
+    replyMessage = await subscribeInstagram(account.toLowerCase(), source.userId);
+  } else if (message.text.includes('subscribe ptt')) {
+    const board = message.text.split(' ')[2];
+    if (!board || !await checkPageExist(`https://www.ptt.cc/bbs/${board}/index.html`)) { return; }
+    replyMessage = await subscribePtt(board.toLowerCase(), source.userId);
   }
 
   replyApi(replyToken, replyMessage);
@@ -69,7 +75,14 @@ const handleText = async (message: line.TextMessage,
 const subscribeInstagram = (account: string, userId: string): Promise<line.TextMessage> => {
   let replyText = '';
   return instagramFirestore.getSubItemsByAccount(account)
-  .then((querySnapshot: admin.firestore.QuerySnapshot) => {
+  .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
+    if (querySnapshot.size === 0) {
+      await instagramFirestore.createSubItem(account, userId).then((res) => {
+        replyText = '成功訂閱!';
+      }).catch((err) => {
+        console.log('instagramFirestore -> createSubItem Error', err);
+      });
+    }
     querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
@@ -83,5 +96,42 @@ const subscribeInstagram = (account: string, userId: string): Promise<line.TextM
   }).catch((error) => {
     console.log(error);
     return textMessageTemplate('請稍後再試!');
+  });
+};
+
+const subscribePtt = (board: string, userId: string): Promise<line.TextMessage> => {
+  let replyText = '';
+  return pttFirestore.getSubItemsByBoard(board)
+  .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
+    if (querySnapshot.size === 0) {
+      await pttFirestore.createSubItem(board, userId).then((res) => {
+        replyText = '成功訂閱!';
+      }).catch((err) => {
+        console.log('pttFirestore -> createSubItem Error', err);
+      });
+    }
+    querySnapshot.forEach(async (item) => {
+      const userList = item.data().users;
+      if (userList.includes(userId)) {
+        replyText = '你已經訂閱過囉!';
+      } else {
+        await pttFirestore.updateUserListFromSubItem(item.id, userList);
+        replyText = '成功訂閱!';
+      }
+    });
+    return textMessageTemplate(replyText);
+  }).catch((error) => {
+    console.log(error);
+    return textMessageTemplate('請稍後再試!');
+  });
+};
+
+const checkPageExist = (url: string): Promise<boolean> => {
+  return axios.get(url)
+  .then((res) => {
+    return res.status === 200 ? true : false;
+  }).catch((err) => {
+    console.log('checkPageExist Error', err);
+    return false;
   });
 };

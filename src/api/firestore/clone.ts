@@ -8,11 +8,11 @@ export const cloneCollection = (oldCollectionName: string, newCollectionName: st
 
   oldCollection.get().then((querySnapshot: admin.firestore.QuerySnapshot) => {
     querySnapshot.forEach((item) => {
-      let itemData = item.data();
+      const itemData = item.data();
       newCollection.add({
         account: itemData.account,
-        users: itemData.users
-      })
-    })
+        users: itemData.users,
+      });
+    });
   });
-}
+};
