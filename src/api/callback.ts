@@ -2,7 +2,7 @@
 import * as line from '@line/bot-sdk';
 import { replyApi } from '@api/line/reply';
 import * as admin from 'firebase-admin';
-import { getSubItemsByAccount, updateUserListFromSubItem } from '@api/firebase';
+import * as instagramFirestore from '@api/firestore/instagram';
 import { textMessageTemplate } from '@api/line/templates';
 
 export const handleEvent = (event: line.WebhookEvent) => {
@@ -68,14 +68,14 @@ const handleText = async (message: line.TextMessage,
 
 const subscribeInstagram = (account: string, userId: string): Promise<line.TextMessage> => {
   let replyText = '';
-  return getSubItemsByAccount(account)
+  return instagramFirestore.getSubItemsByAccount(account)
   .then((querySnapshot: admin.firestore.QuerySnapshot) => {
     querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
         replyText = '你已經訂閱過囉!';
       } else {
-        await updateUserListFromSubItem(item.id, userList);
+        await instagramFirestore.updateUserListFromSubItem(item.id, userList);
         replyText = '成功訂閱!';
       }
     });

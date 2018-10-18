@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { getSubItems } from '@api/firebase';
+import { getSubItems } from '@api/firestore/instagram';
 import * as line from '@line/bot-sdk';
 import * as lineTemplates from '@api/line/templates';
 import { multicastApi } from '@api/line/multicast';

@@ -1,15 +1,7 @@
 import * as admin from 'firebase-admin';
 
-const serviceAccount = require('@config/serviceAccountKey.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://ig-bot-2be8a.firebaseio.com',
-});
-
 const db = admin.firestore();
-db.settings({ timestampsInSnapshots: true });
-const subItemsCollection = db.collection('sub_items');
+const subItemsCollection = db.collection('instagram_sub_items');
 
 export const getSubItems = (() => {
   return subItemsCollection.get();
