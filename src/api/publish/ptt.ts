@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 import { getSubItems } from '@api/firestore/ptt';
 import * as line from '@line/bot-sdk';
 import * as lineTemplates from '@api/line/templates';
-import { multicastApi } from '@api/line/multicast';
+import { pushApi } from '@api/line/push';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { chunk } from 'lodash';
@@ -52,10 +52,14 @@ const sendNewPostsToUsers = async (newPosts: Promise<pttPostObject[]>, users: st
   if (messageListLength > 0) {
     if (messageListLength > 5) {
       chunk(messageList, 5).forEach((item) => {
-        multicastApi(users, item);
+        users.forEach((user) => {
+          pushApi(user, item);
+        });
       });
     } else {
-      multicastApi(users, messageList);
+      users.forEach((user) => {
+        pushApi(user, messageList);
+      });
     }
   }
 };
