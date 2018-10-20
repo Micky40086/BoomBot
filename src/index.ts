@@ -13,6 +13,7 @@ admin.firestore().settings({ timestampsInSnapshots: true });
 
 import callbackRouter from './routes/callbackRouter';
 import instagramRouter from './routes/instagramRouter';
+import pttRouter from './routes/pttRouter';
 
 const app = express();
 // View Settings
@@ -32,5 +33,6 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/callback', callbackRouter);
 app.use('/instagram', instagramRouter);
+app.use('/ptt', pttRouter);
 
 app.listen(8080);

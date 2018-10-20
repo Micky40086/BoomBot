@@ -8,13 +8,15 @@ import * as cheerio from 'cheerio';
 import { chunk } from 'lodash';
 
 export const instagramPublish = () => {
+  const time = new Date().getTime() / 1000;
   getSubItems().then((querySnapshot: admin.firestore.QuerySnapshot) => {
-    const time = new Date().getTime() / 1000;
-    const promises: Promise<any>[] = [];
     querySnapshot.forEach((item) => {
       const itemData = item.data();
       sendNewPostsToUsers(getNewPostsByAccount(itemData.account, time),
-                          itemData.users);
+                          itemData.users)
+      .catch((err) => {
+        console.log(`Account: ${itemData.account} sendNewPostsToUsers Error`, err);
+      });
     });
   }).catch((err) => {
     console.log('getSubItems Error', err);
@@ -30,7 +32,7 @@ const getNewPostsByAccount = (account: string, timestamp: number): Promise<any> 
     .entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
     const newPosts: any[] = [];
     posts.forEach((item: any) => {
-      if (timestamp - 30000 < item.node.taken_at_timestamp) {
+      if (timestamp - 600 < item.node.taken_at_timestamp) {
         newPosts.push(`${url}p/${item.node.shortcode}`);
       }
     });
@@ -65,7 +67,7 @@ const sendNewPostsToUsers = async (newPosts: Promise<string[]>, users: string[])
   const messageList = await createMessageList(await newPosts);
   const messageListLength = messageList.length;
   if (messageListLength > 0) {
-    if (messageListLength > 10) {
+    if (messageListLength > 5) {
       chunk(messageList, 5).forEach((item) => {
         multicastApi(users, item);
       });
