@@ -33,7 +33,7 @@ const getNewPostsByBoard = (board: string, timestamp: number): Promise<pttPostOb
   return axios.get(url).then(async (res) => {
     const $ = cheerio.load(res.data);
     const newPosts: pttPostObject[] = [];
-    $('.r-ent .title a').each((i, item) => {
+    await $('.r-ent .title a').each((i, item) => {
       const href = item.attribs.href;
       if (timestamp - 1800 < parseInt(href.split('.')[1], 10))  {
         newPosts.push({ title: $(item).text(), href: item.attribs.href });
@@ -41,7 +41,7 @@ const getNewPostsByBoard = (board: string, timestamp: number): Promise<pttPostOb
     });
     return newPosts;
   }).catch((err) => {
-    console.log('getNewPostsByAccount Error', err);
+    console.log('getNewPostsByBoard Error', err);
     return [];
   });
 };

@@ -2,10 +2,10 @@ import * as admin from 'firebase-admin';
 import { getSubItems } from '@api/firestore/instagram';
 import * as line from '@line/bot-sdk';
 import * as lineTemplates from '@api/line/templates';
+import { pushApi } from '../line/push';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { chunk } from 'lodash';
-import { pushApi } from '../line/push';
 
 export const instagramPublish = () => {
   const time = new Date().getTime() / 1000;
@@ -31,7 +31,7 @@ const getNewPostsByAccount = (account: string, timestamp: number): Promise<any> 
     const posts = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.length - 1))
     .entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
     const newPosts: any[] = [];
-    posts.forEach((item: any) => {
+    await posts.forEach((item: any) => {
       if (timestamp - 600 < item.node.taken_at_timestamp) {
         newPosts.push(`${url}p/${item.node.shortcode}`);
       }
@@ -45,8 +45,8 @@ const getNewPostsByAccount = (account: string, timestamp: number): Promise<any> 
 
 const filterShareData = (async (arr: Cheerio): Promise<string> => {
   let shareData: string = null;
-  return new Promise((resolve, reject) => {
-    arr.each((index: number, item: CheerioElement) => {
+  return new Promise(async (resolve, reject) => {
+    await arr.each((index: number, item: CheerioElement) => {
       if (item.children && item.children.length > 0) {
         const str = item.children[0].data;
         if (str.includes('window._sharedData = ')) {
