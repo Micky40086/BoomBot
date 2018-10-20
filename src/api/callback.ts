@@ -59,14 +59,15 @@ export const handleEvent = (event: line.WebhookEvent) => {
 const handleText = async (message: line.TextMessage,
                           replyToken: string, source: line.EventSource) => {
   let replyMessage: line.TextMessage;
+  const sourceId = source.type === 'group' ? source.groupId : source.userId;
   if (message.text.includes('subscribe ig')) {
     const account = message.text.split(' ')[2];
     if (!account || await !checkPageExist(`https://www.instagram.com/${account}/`)) { return; }
-    replyMessage = await subscribeInstagram(account.toLowerCase(), source.userId);
+    replyMessage = await subscribeInstagram(account.toLowerCase(), sourceId);
   } else if (message.text.includes('subscribe ptt')) {
     const board = message.text.split(' ')[2];
     if (!board || !await checkPageExist(`https://www.ptt.cc/bbs/${board}/index.html`)) { return; }
-    replyMessage = await subscribePtt(board.toLowerCase(), source.userId);
+    replyMessage = await subscribePtt(board.toLowerCase(), sourceId);
   }
 
   replyApi(replyToken, replyMessage);
@@ -83,12 +84,13 @@ const subscribeInstagram = (account: string, userId: string): Promise<line.TextM
         console.log('instagramFirestore -> createSubItem Error', err);
       });
     }
-    querySnapshot.forEach(async (item) => {
+    await querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
         replyText = '你已經訂閱過囉!';
       } else {
-        await instagramFirestore.updateUserListFromSubItem(item.id, userList);
+        userList.push(userId);
+        instagramFirestore.updateUserListFromSubItem(item.id, userList);
         replyText = '成功訂閱!';
       }
     });
@@ -110,12 +112,13 @@ const subscribePtt = (board: string, userId: string): Promise<line.TextMessage> 
         console.log('pttFirestore -> createSubItem Error', err);
       });
     }
-    querySnapshot.forEach(async (item) => {
+    await querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
         replyText = '你已經訂閱過囉!';
       } else {
-        await pttFirestore.updateUserListFromSubItem(item.id, userList);
+        userList.push(userId);
+        pttFirestore.updateUserListFromSubItem(item.id, userList);
         replyText = '成功訂閱!';
       }
     });
