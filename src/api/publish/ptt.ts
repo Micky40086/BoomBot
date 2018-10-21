@@ -13,7 +13,7 @@ type pttPostObject = {
 };
 
 export const pttPublish = (() => {
-  const time = new Date().getTime() / 1000;
+  const time = Math.floor(new Date().getTime() / 1000);
   getSubItems().then((querySnapshot: admin.firestore.QuerySnapshot) => {
     querySnapshot.forEach((item) => {
       const itemData = item.data();
