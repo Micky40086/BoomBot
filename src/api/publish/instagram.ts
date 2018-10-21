@@ -109,15 +109,15 @@ const getMessagesByPost = (url: string): Promise<line.Message[]> => {
       media.edge_sidecar_to_children.edges.forEach((item: any) => {
         const node = item.node;
         if (node.is_video) {
-          returnMessages.push(lineTemplates.videoMessageTemplate(node.video_url,
-                                                                 node.display_url));
+          returnMessages.push(lineTemplates.videoMessageTemplate(node.display_url,
+                                                                 node.video_url));
         } else {
           returnMessages.push(lineTemplates.imageMessageTemplate(node.display_url));
         }
       });
     } else {
       if (media.is_video) {
-        returnMessages.push(lineTemplates.videoMessageTemplate(media.video_url, media.display_url));
+        returnMessages.push(lineTemplates.videoMessageTemplate(media.display_url, media.video_url));
       } else {
         returnMessages.push(lineTemplates.imageMessageTemplate(media.display_url));
       }
