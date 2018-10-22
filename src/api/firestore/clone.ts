@@ -2,7 +2,10 @@ import * as admin from 'firebase-admin';
 
 const db = admin.firestore();
 
-export const cloneCollection = (oldCollectionName: string, newCollectionName: string) => {
+export const cloneCollection = (
+  oldCollectionName: string,
+  newCollectionName: string,
+) => {
   const oldCollection = db.collection(oldCollectionName);
   const newCollection = db.collection(newCollectionName);
 

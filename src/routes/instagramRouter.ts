@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express';
 import { instagramPublish } from '@api/publish/instagram';
+import { Request, Response, Router } from 'express';
 // import { cloneCollection } from '@api/firestore/clone';
 
 const instagramRouter = (router: Router) => {
