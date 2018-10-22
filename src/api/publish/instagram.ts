@@ -10,10 +10,10 @@ import { chunk } from 'lodash';
 export const instagramPublish = () => {
   const time = Math.floor(new Date().getTime() / 1000);
   getSubItems().then((querySnapshot: admin.firestore.QuerySnapshot) => {
-    querySnapshot.forEach((item) => {
+    querySnapshot.forEach(async (item) => {
       const itemData = item.data();
-      sendNewPostsToUsers(getNewPostsByAccount(itemData.account, time),
-                          itemData.users)
+      const newPosts = await getNewPostsByAccount(itemData.account, time)
+      sendNewPostsToUsers(newPosts, itemData.users)
       .catch((err) => {
         console.log(`Account: ${itemData.account} sendNewPostsToUsers Error`, err);
       });
@@ -46,7 +46,7 @@ const getNewPostsByAccount = (account: string, timestamp: number): Promise<any> 
 const filterShareData = (async (arr: Cheerio): Promise<string> => {
   let shareData: string = null;
   return new Promise(async (resolve, reject) => {
-    await arr.each((index: number, item: CheerioElement) => {
+    arr.each((index: number, item: CheerioElement) => {
       if (item.children && item.children.length > 0) {
         const str = item.children[0].data;
         if (str.includes('window._sharedData = ')) {
@@ -63,8 +63,8 @@ const filterShareData = (async (arr: Cheerio): Promise<string> => {
   });
 });
 
-const sendNewPostsToUsers = async (newPosts: Promise<string[]>, users: string[]) => {
-  const messageList = await createMessageList(await newPosts);
+const sendNewPostsToUsers = async (newPosts: string[], users: string[]) => {
+  const messageList = await createMessageList(newPosts);
   const messageListLength = messageList.length;
   if (messageListLength > 0) {
     if (messageListLength > 5) {

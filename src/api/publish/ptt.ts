@@ -15,10 +15,10 @@ type pttPostObject = {
 export const pttPublish = (() => {
   const time = Math.floor(new Date().getTime() / 1000);
   getSubItems().then((querySnapshot: admin.firestore.QuerySnapshot) => {
-    querySnapshot.forEach((item) => {
+    querySnapshot.forEach(async (item) => {
       const itemData = item.data();
-      sendNewPostsToUsers(getNewPostsByBoard(itemData.board, time),
-                          itemData.users)
+      const newPosts = await getNewPostsByBoard(itemData.board, time)
+      sendNewPostsToUsers(newPosts ,itemData.users)
       .catch((err) => {
         console.log(`Board: ${itemData.board} sendNewPostsToUsers Error`, err);
       });
@@ -30,10 +30,10 @@ export const pttPublish = (() => {
 
 const getNewPostsByBoard = (board: string, timestamp: number): Promise<pttPostObject[]> => {
   const url = `https://www.ptt.cc/bbs/${board}/index.html`;
-  return axios.get(url).then(async (res) => {
+  return axios.get(url).then((res) => {
     const $ = cheerio.load(res.data);
     const newPosts: pttPostObject[] = [];
-    await $('.r-ent .title a').each((i, item) => {
+    $('.r-ent .title a').each((i, item) => {
       const href = item.attribs.href;
       if (timestamp - 1800 < parseInt(href.split('.')[1], 10))  {
         newPosts.push({ title: $(item).text(), href: item.attribs.href });
@@ -46,8 +46,8 @@ const getNewPostsByBoard = (board: string, timestamp: number): Promise<pttPostOb
   });
 };
 
-const sendNewPostsToUsers = async (newPosts: Promise<pttPostObject[]>, users: string[]) => {
-  const messageList = createMessageList(await newPosts);
+const sendNewPostsToUsers = async (newPosts: pttPostObject[], users: string[]) => {
+  const messageList = createMessageList(newPosts);
   const messageListLength = messageList.length;
   if (messageListLength > 0) {
     if (messageListLength > 5) {
