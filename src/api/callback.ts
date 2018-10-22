@@ -60,14 +60,22 @@ const handleText = async (message: line.TextMessage,
                           replyToken: string, source: line.EventSource) => {
   let replyMessage: line.TextMessage;
   const sourceId = source.type === 'group' ? source.groupId : source.userId;
-  if (message.text.includes('subscribe ig')) {
+  if (/^subscribe ig \S+$/.test(message.text)) {
     const account = message.text.split(' ')[2];
-    if (!account || await !checkPageExist(`https://www.instagram.com/${account}/`)) { return; }
-    replyMessage = await subscribeInstagram(account.toLowerCase(), sourceId);
-  } else if (message.text.includes('subscribe ptt')) {
+    const pageExist = await checkPageExist(`https://www.instagram.com/${encodeURI(account)}/`);
+    if (pageExist) {
+      replyMessage = await subscribeInstagram(account.toLowerCase(), sourceId);
+    } else {
+      replyMessage = textMessageTemplate('Subscribe fail, Account not exist!');
+    }
+  } else if (/^subscribe ptt \S+$/.test(message.text)) {
     const board = message.text.split(' ')[2];
-    if (!board || !await checkPageExist(`https://www.ptt.cc/bbs/${board}/index.html`)) { return; }
-    replyMessage = await subscribePtt(board.toLowerCase(), sourceId);
+    const pageExist = await checkPageExist(`https://www.ptt.cc/bbs/${board}/index.html`);
+    if (pageExist) {
+      replyMessage = await subscribePtt(board.toLowerCase(), sourceId);
+    } else {
+      replyMessage = textMessageTemplate('Subscribe fail, Board not exist!');
+    }
   }
 
   replyApi(replyToken, replyMessage);
@@ -79,7 +87,7 @@ const subscribeInstagram = (account: string, userId: string): Promise<line.TextM
   .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
     if (querySnapshot.size === 0) {
       await instagramFirestore.createSubItem(account, userId).then((res) => {
-        replyText = '成功訂閱!';
+        replyText = `Subscribe ${account} success!`;
       }).catch((err) => {
         console.log('instagramFirestore -> createSubItem Error', err);
       });
@@ -87,11 +95,11 @@ const subscribeInstagram = (account: string, userId: string): Promise<line.TextM
     await querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
-        replyText = '你已經訂閱過囉!';
+        replyText = `${account} already subscribed!`;
       } else {
         userList.push(userId);
         instagramFirestore.updateUserListFromSubItem(item.id, userList);
-        replyText = '成功訂閱!';
+        replyText = `Subscribe ${account} success!`;
       }
     });
     return textMessageTemplate(replyText);
@@ -107,7 +115,7 @@ const subscribePtt = (board: string, userId: string): Promise<line.TextMessage> 
   .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
     if (querySnapshot.size === 0) {
       await pttFirestore.createSubItem(board, userId).then((res) => {
-        replyText = '成功訂閱!';
+        replyText = `Subscribe ${board} success!`;
       }).catch((err) => {
         console.log('pttFirestore -> createSubItem Error', err);
       });
@@ -115,11 +123,11 @@ const subscribePtt = (board: string, userId: string): Promise<line.TextMessage> 
     await querySnapshot.forEach(async (item) => {
       const userList = item.data().users;
       if (userList.includes(userId)) {
-        replyText = '你已經訂閱過囉!';
+        replyText = `${board} already subscribed!`;
       } else {
         userList.push(userId);
         pttFirestore.updateUserListFromSubItem(item.id, userList);
-        replyText = '成功訂閱!';
+        replyText = `Subscribe ${board} success!`;
       }
     });
     return textMessageTemplate(replyText);

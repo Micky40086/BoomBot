@@ -17,8 +17,8 @@ export const pttPublish = (() => {
   getSubItems().then((querySnapshot: admin.firestore.QuerySnapshot) => {
     querySnapshot.forEach(async (item) => {
       const itemData = item.data();
-      const newPosts = await getNewPostsByBoard(itemData.board, time)
-      sendNewPostsToUsers(newPosts ,itemData.users)
+      const newPosts = await getNewPostsByBoard(itemData.board, time);
+      sendNewPostsToUsers(newPosts, itemData.users)
       .catch((err) => {
         console.log(`Board: ${itemData.board} sendNewPostsToUsers Error`, err);
       });
