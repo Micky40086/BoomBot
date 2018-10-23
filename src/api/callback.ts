@@ -82,6 +82,16 @@ const handleText = async (
     } else {
       replyMessage = textMessageTemplate('Subscribe fail, Board not exist!');
     }
+  } else if (/^unsubscribe ptt \S+$/.test(message.text)) {
+    const board = message.text.split(' ')[2];
+    const pageExist = await checkPageExist(
+      `https://www.ptt.cc/bbs/${board}/index.html`,
+    );
+    if (pageExist) {
+      replyMessage = await unsubscribePtt(board.toLowerCase(), sourceId);
+    } else {
+      replyMessage = textMessageTemplate('Unsubscribe fail, Board not exist!');
+    }
   }
 
   replyApi(replyToken, replyMessage);
@@ -119,7 +129,7 @@ const subscribeInstagram = (
     })
     .catch((error) => {
       console.log(error);
-      return textMessageTemplate('請稍後再試!');
+      return textMessageTemplate('Please try later!');
     });
 };
 
@@ -155,7 +165,38 @@ const subscribePtt = (
     })
     .catch((error) => {
       console.log(error);
-      return textMessageTemplate('請稍後再試!');
+      return textMessageTemplate('Please try later!');
+    });
+};
+
+const unsubscribePtt = (
+  board: string,
+  userId: string,
+): Promise<line.TextMessage> => {
+  let replyText = '';
+  return pttFirestore
+    .getSubItemsByBoard(board)
+    .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
+      if (querySnapshot.size === 0) {
+        replyText = `You are not subscribe ${board}!`;
+      } else {
+        await querySnapshot.forEach(async (item) => {
+          const userList = item.data().users;
+          if (userList.includes(userId)) {
+            const userIndex = userList.indexOf(userId);
+            userList.splice(userIndex, 1);
+            pttFirestore.updateUserListFromSubItem(item.id, userList);
+            replyText = `Unsubscribe ${board} success!`;
+          } else {
+            replyText = `You are not subscribe ${board}!`;
+          }
+        });
+      }
+      return textMessageTemplate(replyText);
+    })
+    .catch((error) => {
+      console.log(error);
+      return textMessageTemplate('Please try later!');
     });
 };
 

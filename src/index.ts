@@ -1,6 +1,3 @@
-import callbackRouter from './routes/callbackRouter';
-import instagramRouter from './routes/instagramRouter';
-import pttRouter from './routes/pttRouter';
 import bodyParser from 'body-parser';
 import express, { NextFunction, Request, Response } from 'express';
 import * as admin from 'firebase-admin';
@@ -12,6 +9,10 @@ admin.initializeApp({
   databaseURL: 'https://ig-bot-2be8a.firebaseio.com',
 });
 admin.firestore().settings({ timestampsInSnapshots: true });
+
+import callbackRouter from './routes/callbackRouter';
+import instagramRouter from './routes/instagramRouter';
+import pttRouter from './routes/pttRouter';
 
 const app = express();
 // View Settings
