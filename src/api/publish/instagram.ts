@@ -102,6 +102,9 @@ const createMessageList = (newPosts: string[]): Promise<line.Message[]> => {
   });
   return Promise.all(promises)
     .then((result) => {
+      if (result.length === 0) {
+        return [];
+      }
       const messageList = result.reduce((accumulator, currentValue) => {
         return accumulator.concat(currentValue);
       });
