@@ -38,7 +38,11 @@ const getNewPostsByBoard = (
 ): Promise<pttPostObject[]> => {
   const url = `https://www.ptt.cc/bbs/${board}/index.html`;
   return axios
-    .get(url)
+    .get(url, {
+      headers: {
+        Cookie: 'over18=1;',
+      },
+    })
     .then((res) => {
       const $ = cheerio.load(res.data);
       const newPosts: pttPostObject[] = [];
