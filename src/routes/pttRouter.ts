@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express';
 import { pttPublish } from '@api/publish/ptt';
+import { Request, Response, Router } from 'express';
 // import { cloneCollection } from '@api/firestore/clone';
 
 const pttRouter = (router: Router) => {

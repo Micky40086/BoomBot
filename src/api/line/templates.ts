@@ -1,4 +1,3 @@
-
 import * as line from '@line/bot-sdk';
 
 export const textMessageTemplate = (message: string): line.TextMessage => {
@@ -16,7 +15,10 @@ export const imageMessageTemplate = (imageUrl: string): line.ImageMessage => {
   };
 };
 
-export const videoMessageTemplate = (imageUrl: string, videoUrl: string): line.VideoMessage => {
+export const videoMessageTemplate = (
+  imageUrl: string,
+  videoUrl: string,
+): line.VideoMessage => {
   return {
     type: 'video',
     originalContentUrl: videoUrl,
