@@ -19,12 +19,7 @@ export const pttPublish = () => {
       querySnapshot.forEach(async (item) => {
         const itemData = item.data();
         const newPosts = await getNewPostsByBoard(itemData.board, time);
-        sendNewPostsToUsers(newPosts, itemData.users).catch((err) => {
-          console.log(
-            `Board: ${itemData.board} sendNewPostsToUsers Error`,
-            err,
-          );
-        });
+        sendNewPostsToUsers(newPosts, itemData.users);
       });
     })
     .catch((err) => {
@@ -60,10 +55,7 @@ const getNewPostsByBoard = (
     });
 };
 
-const sendNewPostsToUsers = async (
-  newPosts: pttPostObject[],
-  users: string[],
-) => {
+const sendNewPostsToUsers = (newPosts: pttPostObject[], users: string[]) => {
   const messageList = createMessageList(newPosts);
   const messageListLength = messageList.length;
   if (messageListLength > 0) {

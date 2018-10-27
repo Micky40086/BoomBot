@@ -72,6 +72,21 @@ const handleText = async (
     } else {
       replyMessage = textMessageTemplate('Subscribe fail, Account not exist!');
     }
+  } else if (/^unsubscribe ig \S+$/.test(message.text)) {
+    const account = message.text.split(' ')[2];
+    const pageExist = await checkPageExist(
+      `https://www.instagram.com/${encodeURI(account)}/`,
+    );
+    if (pageExist) {
+      replyMessage = await unsubscribeInstagram(
+        account.toLowerCase(),
+        sourceId,
+      );
+    } else {
+      replyMessage = textMessageTemplate(
+        'Unsubscribe fail, Account not exist!',
+      );
+    }
   } else if (/^subscribe ptt \S+$/.test(message.text)) {
     const board = message.text.split(' ')[2];
     const pageExist = await checkPageExist(
@@ -115,7 +130,7 @@ const subscribeInstagram = (
             console.log('instagramFirestore -> createSubItem Error', err);
           });
       }
-      await querySnapshot.forEach(async (item) => {
+      await querySnapshot.forEach((item) => {
         const userList = item.data().users;
         if (userList.includes(userId)) {
           replyText = `${account} already subscribed!`;
@@ -125,6 +140,37 @@ const subscribeInstagram = (
           replyText = `Subscribe ${account} success!`;
         }
       });
+      return textMessageTemplate(replyText);
+    })
+    .catch((error) => {
+      console.log(error);
+      return textMessageTemplate('Please try later!');
+    });
+};
+
+const unsubscribeInstagram = (
+  account: string,
+  userId: string,
+): Promise<line.TextMessage> => {
+  let replyText = '';
+  return instagramFirestore
+    .getSubItemsByAccount(account)
+    .then((querySnapshot: admin.firestore.QuerySnapshot) => {
+      if (querySnapshot.size === 0) {
+        replyText = `You are not subscribe ${account}!`;
+      } else {
+        querySnapshot.forEach((item) => {
+          const userList = item.data().users;
+          if (userList.includes(userId)) {
+            const userIndex = userList.indexOf(userId);
+            userList.splice(userIndex, 1);
+            instagramFirestore.updateUserListFromSubItem(item.id, userList);
+            replyText = `Unsubscribe ${account} success!`;
+          } else {
+            replyText = `You are not subscribe ${account}!`;
+          }
+        });
+      }
       return textMessageTemplate(replyText);
     })
     .catch((error) => {
@@ -151,7 +197,7 @@ const subscribePtt = (
             console.log('pttFirestore -> createSubItem Error', err);
           });
       }
-      await querySnapshot.forEach(async (item) => {
+      querySnapshot.forEach((item) => {
         const userList = item.data().users;
         if (userList.includes(userId)) {
           replyText = `${board} already subscribed!`;
@@ -176,11 +222,11 @@ const unsubscribePtt = (
   let replyText = '';
   return pttFirestore
     .getSubItemsByBoard(board)
-    .then(async (querySnapshot: admin.firestore.QuerySnapshot) => {
+    .then((querySnapshot: admin.firestore.QuerySnapshot) => {
       if (querySnapshot.size === 0) {
         replyText = `You are not subscribe ${board}!`;
       } else {
-        await querySnapshot.forEach(async (item) => {
+        querySnapshot.forEach((item) => {
           const userList = item.data().users;
           if (userList.includes(userId)) {
             const userIndex = userList.indexOf(userId);

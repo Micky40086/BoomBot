@@ -14,12 +14,7 @@ export const instagramPublish = () => {
       querySnapshot.forEach(async (item) => {
         const itemData = item.data();
         const newPosts = await getNewPostsByAccount(itemData.account, time);
-        sendNewPostsToUsers(newPosts, itemData.users).catch((err) => {
-          console.log(
-            `Account: ${itemData.account} sendNewPostsToUsers Error`,
-            err,
-          );
-        });
+        sendNewPostsToUsers(newPosts, itemData.users);
       });
     })
     .catch((err) => {
