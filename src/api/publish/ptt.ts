@@ -38,10 +38,10 @@ const getNewPostsByBoard = (
         Cookie: 'over18=1;',
       },
     })
-    .then((res) => {
+    .then(async (res) => {
       const $ = cheerio.load(res.data);
       const newPosts: pttPostObject[] = [];
-      $('.r-ent .title a').each((i, item) => {
+      await $('.r-ent .title a').each((i, item) => {
         const href = item.attribs.href;
         if (timestamp - 1800 < parseInt(href.split('.')[1], 10)) {
           newPosts.push({ title: $(item).text(), href: item.attribs.href });

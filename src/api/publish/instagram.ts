@@ -32,6 +32,10 @@ const getNewPostsByAccount = (
     .then(async (res) => {
       const $ = cheerio.load(res.data);
       const dataStr = await filterShareData($('script'));
+      if (dataStr === null) {
+        console.log(`dataStr === null, Account => ${account}`);
+        return [];
+      }
       const posts = JSON.parse(
         dataStr.substring(dataStr.indexOf('{'), dataStr.length - 1),
       ).entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media
@@ -53,7 +57,7 @@ const getNewPostsByAccount = (
 const filterShareData = async (arr: Cheerio): Promise<string> => {
   let shareData: string = null;
   return new Promise(async (resolve, reject) => {
-    arr.each((index: number, item: CheerioElement) => {
+    await arr.each((index: number, item: CheerioElement) => {
       if (item.children && item.children.length > 0) {
         const str = item.children[0].data;
         if (str.includes('window._sharedData = ')) {
